@@ -16,11 +16,9 @@ using namespace std;
 CarregarArquivo obj;
 
 // Variáveis de controle do personagem
-GLfloat dx = 0.0;
 GLfloat translateX = 0.0f, translateY = 0.0f, translateZ = -5.0f;
 GLfloat rotateX = 0.0f, rotateY = 0.0f, rotateZ = 0.0f;
 GLfloat tamX = 1.0f, tamY = 1.0f, tamZ = 1.0f;
-GLfloat currentColor[3] = {1.0f, 1.0f, 1.0f};
 GLfloat movementSpeed = 0.1f;
 
 
@@ -47,7 +45,6 @@ GLint lastY = 0;
 
 // Variáveis para o controle do teclado
 bool keys[256];
-bool wireframe = true;
 float originalRotateX = 0.0f, originalRotateY = 0.0f;
 
 
@@ -145,14 +142,6 @@ void mouse(int button, int state, int x, int y) {
             draggingTranslate = 0;
         }
     }
-    if (button == GLUT_MIDDLE_BUTTON) {
-        if (state == GLUT_DOWN) {
-            currentColor[0] = (float)rand() / RAND_MAX;
-            currentColor[1] = (float)rand() / RAND_MAX;
-            currentColor[2] = (float)rand() / RAND_MAX;
-            glutPostRedisplay();
-        }
-    }
 }
 
 void motion(int x, int y) {
@@ -218,20 +207,6 @@ void Piso(float escala, float altura, GLfloat translateX, GLfloat translateY, GL
     glDisable(GL_TEXTURE_2D);
 }
 
-void ObjWireFrame(void) {
-    glPushMatrix();
-    for (unsigned int j = 0; j < obj.faces.size(); ++j) {
-        glBegin(GL_LINE_LOOP);
-        for (unsigned int i = 0; i < obj.faces[j].size(); ++i) {
-            GLfloat nor[3] = {obj.normais[obj.faces[j][i][2]][0], obj.normais[obj.faces[j][i][2]][1], obj.normais[obj.faces[j][i][2]][2]};
-            glNormal3fv(nor);
-            GLfloat vert[3] = {obj.vertices[obj.faces[j][i][0]][0], obj.vertices[obj.faces[j][i][0]][1], obj.vertices[obj.faces[j][i][0]][2]};
-            glVertex3fv(vert);
-        }
-        glEnd();
-    }
-    glPopMatrix();
-}
 
 void ObjSolid(void) {
     glPushMatrix();
@@ -284,7 +259,6 @@ void Desenha(void) {
     glRotatef(rotateY, 0.0f, 1.0f, 0.0f);            // Rotacionar ao redor do eixo Y
     glRotatef(rotateZ, 0.0f, 0.0f, 1.0f);            // Rotacionar ao redor do eixo Z
     glScalef(tamX, tamY, tamZ);                      // Escalar o objeto
-    glColor3fv(currentColor);
 
     // Desenhar o objeto
     if (camera == FIRST_PERSON) {
