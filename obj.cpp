@@ -15,6 +15,7 @@ using namespace std;
 
 CarregarArquivo obj;
 
+// Variáveis de controle do personagem
 GLfloat dx = 0.0;
 GLfloat translateX = 0.0f, translateY = 0.0f, translateZ = -5.0f;
 GLfloat rotateX = 0.0f, rotateY = 0.0f, rotateZ = 0.0f;
@@ -28,8 +29,15 @@ GLfloat cameraX = 0.0f, cameraY = 1.0f, cameraZ = 5.0f;
 GLfloat lookX = 0.0f, lookY = 0.0f, lookZ = 0.0f;
 bool followCamera = false;
 GLfloat angle = 65.0f, fAspect = 1.0f; // Inicialize angle e fAspect
-GLfloat cameraOffsetY = 2.0f;
-GLfloat cameraOffsetZ = 5.0f;
+GLfloat cameraOffsetY = 2.25f;
+GLfloat cameraOffsetZ = 4.5f;
+bool cameraSwitched = false;
+enum CameraView {
+    THIRD_PERSON,
+    FIRST_PERSON,
+    FIXED_VIEW
+};
+CameraView camera = FIXED_VIEW;
 
 // Variáveis para o controle do mouse
 GLint dragging = 0;
@@ -37,15 +45,17 @@ GLint draggingTranslate = 0;
 GLint lastX = 0;
 GLint lastY = 0;
 
+// Variáveis para o controle do teclado
+bool keys[256];
 bool wireframe = true;
+float originalRotateX = 0.0f, originalRotateY = 0.0f;
+
 
 void updateCameraPosition() {
-    if (followCamera) {
-        // Define a posição da câmera atrás do personagem, em relação à sua rotação
-        cameraX = translateX - cameraOffsetZ * sin(rotateY * M_PI / 180.0f);
-        cameraZ = translateZ + cameraOffsetZ * cos(rotateY * M_PI / 180.0f);
-        cameraY = translateY + cameraOffsetY;  // Define a altura da câmera
-    }
+    // Define a posição da câmera atrás do personagem, em relação à sua rotação
+    cameraX = translateX + cameraOffsetZ * sin(rotateY * M_PI / 180.0f);
+    cameraZ = translateZ - cameraOffsetZ * cos(rotateY * M_PI / 180.0f);
+    cameraY = translateY + cameraOffsetY;  // Define a altura da câmera
 }
 
 
@@ -55,10 +65,19 @@ void EspecificaParametrosVisualizacao(void) {
     gluPerspective(angle, fAspect, 0.1, 500);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    if(followCamera) {
-        gluLookAt(translateX - 5.0f, translateY + 2.0f, translateZ + 5.0f, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
-    } else {
-        gluLookAt(0.0f, 50.0f, 100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    switch (camera) {
+        case THIRD_PERSON:
+            updateCameraPosition();
+        gluLookAt(cameraX, cameraY, cameraZ, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
+        break;
+        case FIRST_PERSON:
+            gluLookAt(translateX, translateY + 1.2f, translateZ, translateX + sin(rotateY + M_PI / 180.0f), translateY + 1.2f + sin(rotateX * M_PI / 180.0f), translateZ + cos(rotateY * M_PI / 180.0f), 0.0f, 1.0f, 0.0f);
+
+        break;
+        case FIXED_VIEW:
+            gluLookAt(0.0f, 25.0f, -30.0f, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
+
+        break;
     }
 }
 
@@ -69,70 +88,42 @@ void AlteraTamanhoJanela(GLsizei w, GLsizei h) {
     EspecificaParametrosVisualizacao();
 }
 
-void Teclado(unsigned char key, int x, int y) {
-    switch (key) {
-        case 'w': // Move para frente
-            translateX += movementSpeed * sin(rotateY * M_PI / 180.0f);
-            translateZ -= movementSpeed * cos(rotateY * M_PI / 180.0f);
-            break;
-        case 's': // Move para trás
-            translateX -= movementSpeed * sin(rotateY * M_PI / 180.0f);
-            translateZ += movementSpeed * cos(rotateY * M_PI / 180.0f);
-            break;
-        case 'a': // Move para a esquerda
-            translateX -= movementSpeed * cos(rotateY * M_PI / 180.0f);
-            translateZ -= movementSpeed * sin(rotateY * M_PI / 180.0f);
-            break;
-        case 'd': // Move para a direita
-            translateX += movementSpeed * cos(rotateY * M_PI / 180.0f);
-            translateZ += movementSpeed * sin(rotateY * M_PI / 180.0f);
-            break;
-        case '+':
-        case '=':
-            tamX += 0.1f;
-            tamY += 0.1f;
-            tamZ += 0.1f;
-            break;
-        case '-':
-            tamX -= 0.1f;
-            tamY -= 0.1f;
-            tamZ -= 0.1f;
-            break;
-        case 'c':
-            currentColor[0] = (float)rand() / RAND_MAX;
-            currentColor[1] = (float)rand() / RAND_MAX;
-            currentColor[2] = (float)rand() / RAND_MAX;
-            break;
-        case 'q': cameraZ -= 0.1f; break;
-        case 'e': cameraZ += 0.1f; break;
-        case 'm':
-            wireframe = !wireframe;
-        break;
-        case 'v':
-            followCamera = !followCamera;
-        break;
-    }
-    updateCameraPosition();
-    glutPostRedisplay();
+void Keys(unsigned char key, int x, int y) {
+    keys[key] = true; // Set key state to true when pressed
 }
 
+void KeysUp(unsigned char key, int x, int y) {
+    keys[key] = false; // Set key state to false when released
+}
 
-void special(int tecla, int x, int y) {
-    switch (tecla) {
-        case GLUT_KEY_UP:
-            translateX += 0.1f * sin(rotateY * M_PI / 180.0f);
-        translateZ += 0.1f * cos(rotateY * M_PI / 180.0f);
-        break;
-        case GLUT_KEY_DOWN:
-            translateX -= 0.1f * sin(rotateY * M_PI / 180.0f);
-        translateZ -= 0.1f * cos(rotateY * M_PI / 180.0f);
-        break;
-        case GLUT_KEY_RIGHT: rotateY += 5.0f; break;
-        case GLUT_KEY_LEFT: rotateY -= 5.0f; break;
+void updateMovement() {
+    GLfloat dirX = -sin(rotateY * M_PI / 180.0f);
+    GLfloat dirZ = -cos(rotateY * M_PI / 180.0f);
+
+    // Movimentação
+    if (keys['w']) { // Move para frente
+        translateX += movementSpeed * dirX;
+        translateZ -= movementSpeed * dirZ;
+    }
+    if (keys['s']) { // Move para trás
+        translateX -= movementSpeed * dirX;
+        translateZ += movementSpeed * dirZ;
+    }
+    if (keys['a']) { // Move para a esquerda
+        translateX -= movementSpeed * dirZ;
+        translateZ -= movementSpeed * dirX;
+    }
+    if (keys['d']) { // Move para a direita
+        translateX += movementSpeed * dirZ;
+        translateZ += movementSpeed * dirX;
     }
 
-    updateCameraPosition();
-    glutPostRedisplay();
+    if (keys['v'] && !cameraSwitched) {
+        camera = static_cast<CameraView>((camera + 1)%3);
+        cameraSwitched = true;
+    } else if (!keys['v']) {
+        cameraSwitched = false;
+    }
 }
 
 void mouse(int button, int state, int x, int y) {
@@ -262,10 +253,20 @@ void Desenha(void) {
 
     // Aplicar a mesma configuração de câmera
     glLoadIdentity();
-    if(followCamera) {
-        gluLookAt(translateX - 5.0f, translateY + 2.0f, translateZ + 5.0f, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
-    } else {
-        gluLookAt(0.0f, 50.0f, 100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    switch (camera) {
+        case THIRD_PERSON:
+            updateCameraPosition();
+        gluLookAt(cameraX, cameraY, cameraZ, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
+        break;
+        case FIRST_PERSON:
+            gluLookAt(translateX, translateY + 1.2f, translateZ, translateX + sin(rotateY + M_PI / 180.0f), translateY + 1.2f + sin(rotateX * M_PI / 180.0f), translateZ + cos(rotateY * M_PI / 180.0f), 0.0f, 1.0f, 0.0f);
+
+
+        break;
+        case FIXED_VIEW:
+            gluLookAt(0.0f, 25.0f, -30.0f, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
+
+        break;
     }
 
     // Desenhar o piso sem transformações
@@ -286,31 +287,35 @@ void Desenha(void) {
     glColor3fv(currentColor);
 
     // Desenhar o objeto
-    if (wireframe) {
-        ObjWireFrame();
-    } else {
-        ObjSolid();
+    if (camera == FIRST_PERSON) {
+        glScalef(0.0f, 0.0f, 0.0f);
     }
+    ObjSolid();
+
     glPopMatrix(); // Finaliza a transformação do objeto
 
     glutSwapBuffers();
 }
 
-
+void display() {
+    updateMovement();
+    glutPostRedisplay();
+}
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB);
     glutInitWindowSize(800, 600);
     glutInitWindowPosition(0, 0);
-    glutCreateWindow("Computação Gráfica: Formula 1");
+    glutCreateWindow("Minecraft");
 
     Inicializa();
 
     glutDisplayFunc(Desenha);
     glutReshapeFunc(AlteraTamanhoJanela);
-    glutKeyboardFunc(Teclado);
-    glutSpecialFunc(special);
+    glutKeyboardFunc(Keys);
+    glutKeyboardUpFunc(KeysUp);
+    glutIdleFunc(display);
     glutMouseFunc(mouse);
     glutMotionFunc(motion);
     //glutMouseWheelFunc(mouseWheel);
