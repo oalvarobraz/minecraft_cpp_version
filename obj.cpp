@@ -183,6 +183,16 @@ void Inicializa(void) {
     glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
 
+    GLfloat luzAmbiente[4] = {0.2f, 0.2f, 0.2f, 1.0f};
+    GLfloat luzDifusa[4] = {1.0f, 0.9f, 0.7f, 1.0f}; // cor
+    GLfloat luzEspecular[4] = {1.0f, 1.0f, 1.0f, 1.0f}; // brilho
+    GLfloat direcaoLuz[4] = {0.0f, 1.0f, 0.0f, 0.0f};  // alto para baixo
+
+    glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular);
+    glLightfv(GL_LIGHT0, GL_POSITION, direcaoLuz);
+
     EspecificaParametrosVisualizacao();
 
     obj.Carregar("character.obj");
@@ -210,6 +220,17 @@ void Piso(float escala, float altura, GLfloat translateX, GLfloat translateY, GL
 
 void ObjSolid(void) {
     glPushMatrix();
+
+    GLfloat materialAmbiente[] = {0.2f, 0.2f, 0.2f, 1.0f};
+    GLfloat materialDifuso[] = {1.0f, 0.5f, 0.31f, 1.0f};
+    GLfloat materialEspecular[] = {0.5f, 0.5f, 0.5f, 1.0f};
+    GLfloat brilho = 32.0f;
+
+    glMaterialfv(GL_FRONT, GL_AMBIENT, materialAmbiente);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, materialDifuso);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, materialEspecular);
+    glMaterialf(GL_FRONT, GL_SHININESS, brilho);
+
     for (unsigned int j = 0; j < obj.faces.size(); ++j) {
         glBegin(GL_POLYGON);
         for (unsigned int i = 0; i < obj.faces[j].size(); ++i) {
