@@ -328,6 +328,12 @@ public:
     }
 
     void CarregarTextura() {
+        static bool texturaCarregada = false;
+
+        if (texturaCarregada) {
+            return;
+        }
+
         try {
             ifstream arq("grass.bmp", ios::binary);
             char c;
@@ -347,13 +353,16 @@ public:
             glBindTexture(GL_TEXTURE_2D, textura_id);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, floor);
 
-            // Definir par‚metros de filtro de textura
+            // Definir par√¢metros de filtro de textura
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+            texturaCarregada = true;
         } catch (const exception &e) {
             cout << "Erro ao ler o arquivo";
         }
     }
+
 };
