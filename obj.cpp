@@ -199,7 +199,7 @@ void Inicializa(void) {
 
     EspecificaParametrosVisualizacao();
 
-    obj.Carregar("character.obj");
+    obj.Carregar("steve.obj");
 
 }
 
@@ -276,7 +276,7 @@ void Desenha(void) {
     // Aplicar as transformações ao objeto separadamente
     glPushMatrix();
     // Aplicar as transformações de translação, rotação e escala do objeto
-    glTranslatef(translateX, translateY + 1.2f, translateZ); // Transladar o objeto
+    glTranslatef(translateX, translateY, translateZ); // Transladar o objeto
     glRotatef(rotateX, 1.0f, 0.0f, 0.0f);            // Rotacionar ao redor do eixo X
     glRotatef(rotateY, 0.0f, 1.0f, 0.0f);            // Rotacionar ao redor do eixo Y
     glRotatef(rotateZ, 0.0f, 0.0f, 1.0f);            // Rotacionar ao redor do eixo Z
