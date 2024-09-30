@@ -50,8 +50,8 @@ float originalRotateX = 0.0f, originalRotateY = 0.0f;
 
 void updateCameraPosition() {
     // Define a posição da câmera atrás do personagem, em relação à sua rotação
-    cameraX = translateX + cameraOffsetZ * sin(rotateY * M_PI / 180.0f);
-    cameraZ = translateZ - cameraOffsetZ * cos(rotateY * M_PI / 180.0f);
+    cameraX = translateX + cameraOffsetZ * sin(rotateX * M_PI / 180.0f);
+    cameraZ = translateZ - cameraOffsetZ * cos(rotateX * M_PI / 180.0f);
     cameraY = translateY + cameraOffsetY;  // Define a altura da câmera
 }
 
@@ -65,16 +65,14 @@ void EspecificaParametrosVisualizacao(void) {
     switch (camera) {
         case THIRD_PERSON:
             updateCameraPosition();
-        gluLookAt(cameraX, cameraY, cameraZ, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
-        break;
+            gluLookAt(cameraX, cameraY, cameraZ, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
+            break;
         case FIRST_PERSON:
             gluLookAt(translateX, translateY + 1.2f, translateZ, translateX + sin(rotateY + M_PI / 180.0f), translateY + 1.2f + sin(rotateX * M_PI / 180.0f), translateZ + cos(rotateY * M_PI / 180.0f), 0.0f, 1.0f, 0.0f);
-
-        break;
+            break;
         case FIXED_VIEW:
             gluLookAt(0.0f, 25.0f, -30.0f, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
-
-        break;
+            break;
     }
 }
 
@@ -94,26 +92,64 @@ void KeysUp(unsigned char key, int x, int y) {
 }
 
 void updateMovement() {
-    GLfloat dirX = -sin(rotateY * M_PI / 180.0f);
-    GLfloat dirZ = -cos(rotateY * M_PI / 180.0f);
+    // Esta dando problema ao tentar mudar a visão em relaçao ao seu movimento, (ir para direita ele tem que virar para a direita)
+    GLfloat dirX = -sin(rotateX * M_PI / 180.0f);
+    GLfloat dirZ = -cos(rotateX * M_PI / 180.0f);
+
+    bool movingForward = keys['w'];
+    bool movingBackward = keys['s'];
+    bool movingLeft = keys['a'];
+    bool movingRight = keys['d'];
 
     // Movimentação
-    if (keys['w']) { // Move para frente
+    if (movingForward && !movingBackward) {
         translateX += movementSpeed * dirX;
         translateZ -= movementSpeed * dirZ;
-    }
-    if (keys['s']) { // Move para trás
+
+        if (movingRight && !movingLeft) {
+            // Diagonal para frente e direita
+            translateX += movementSpeed * dirZ;
+            translateZ += movementSpeed * dirX;
+            rotateY = -45.0f;
+        } else if (movingLeft && !movingRight) {
+            // Diagonal para frente e esquerda
+            translateX -= movementSpeed * dirZ;
+            translateZ -= movementSpeed * dirX;
+            rotateY = 45.0f;
+        } else {
+            // Apenas para frente
+            rotateY = 0.0f;
+        }
+    } else if (movingBackward && !movingForward) {
         translateX -= movementSpeed * dirX;
         translateZ += movementSpeed * dirZ;
-    }
-    if (keys['a']) { // Move para a esquerda
+
+        if (movingRight && !movingLeft) {
+            // Diagonal para trás e direita
+            translateX += movementSpeed * dirZ;
+            translateZ += movementSpeed * dirX;
+            rotateY = -135.0f;
+        } else if (movingLeft && !movingRight) {
+            // Diagonal para trás e esquerda
+            translateX -= movementSpeed * dirZ;
+            translateZ -= movementSpeed * dirX;
+            rotateY = 135.0f;
+        } else {
+            // Apenas para trás
+            rotateY = 180.0f;
+        }
+    } else if (movingRight && !movingLeft) {
+        // Apenas para a direita
+        rotateY = -90.0f;
+        translateX += movementSpeed * dirZ;
+        translateZ += movementSpeed * dirX;
+    } else if (movingLeft && !movingRight) {
+        // Apenas para a esquerda
+        rotateY = 90.0f;
         translateX -= movementSpeed * dirZ;
         translateZ -= movementSpeed * dirX;
     }
-    if (keys['d']) { // Move para a direita
-        translateX += movementSpeed * dirZ;
-        translateZ += movementSpeed * dirX;
-    }
+
 
     if (keys['v'] && !cameraSwitched) {
         camera = static_cast<CameraView>((camera + 1)%3);
@@ -128,18 +164,8 @@ void mouse(int button, int state, int x, int y) {
         if (state == GLUT_DOWN) {
             dragging = 1;
             lastX = x;
-            lastY = y;
         } else if (state == GLUT_UP) {
             dragging = 0;
-        }
-    }
-    if (button == GLUT_RIGHT_BUTTON) {
-        if (state == GLUT_DOWN) {
-            draggingTranslate = 1;
-            lastX = x;
-            lastY = y;
-        } else if (state == GLUT_UP) {
-            draggingTranslate = 0;
         }
     }
 }
@@ -147,31 +173,9 @@ void mouse(int button, int state, int x, int y) {
 void motion(int x, int y) {
     if (dragging) {
         int deltaX = x - lastX;
-        int deltaY = y - lastY;
         rotateY += deltaX * 0.5f;
-        rotateX -= deltaY * 0.5f;
-    }
-    if (draggingTranslate) {
-        int deltaX = x - lastX;
-        int deltaY = y - lastY;
-        translateX += deltaX * 0.01f;
-        translateY -= deltaY * 0.01f;
     }
     lastX = x;
-    lastY = y;
-    glutPostRedisplay();
-}
-
-void mouseWheel(int button, int dir, int x, int y) {
-    if (dir > 0) {
-        tamX += 0.1f;
-        tamY += 0.1f;
-        tamZ += 0.1f;
-    } else {
-        tamX -= 0.1f;
-        tamY -= 0.1f;
-        tamZ -= 0.1f;
-    }
     glutPostRedisplay();
 }
 
@@ -252,17 +256,14 @@ void Desenha(void) {
     switch (camera) {
         case THIRD_PERSON:
             updateCameraPosition();
-        gluLookAt(cameraX, cameraY, cameraZ, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
-        break;
+            gluLookAt(cameraX, cameraY, cameraZ, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
+            break;
         case FIRST_PERSON:
             gluLookAt(translateX, translateY + 1.2f, translateZ, translateX + sin(rotateY + M_PI / 180.0f), translateY + 1.2f + sin(rotateX * M_PI / 180.0f), translateZ + cos(rotateY * M_PI / 180.0f), 0.0f, 1.0f, 0.0f);
-
-
-        break;
+            break;
         case FIXED_VIEW:
             gluLookAt(0.0f, 25.0f, -30.0f, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
-
-        break;
+            break;
     }
 
     // Desenhar o piso sem transformações
