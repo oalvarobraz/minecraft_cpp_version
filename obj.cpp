@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <cstdio>
 #include "CarregarArquivo2.cpp"
 
 using namespace std;
@@ -48,6 +49,60 @@ float mouseSensitivity = 0.05f;
 bool keys[256];
 float originalRotateX = 0.0f, originalRotateY = 0.0f;
 
+// Variáveis de controle de objetos
+struct ObjetoCair {
+    GLfloat x, y, z;
+    GLfloat velocidade;
+};
+
+std::vector<ObjetoCair> objetos;
+int count = 0;
+
+
+// Função para criar objetos caindo do céu
+void criarObjeto() {
+    ObjetoCair obj;
+
+    // Definir a probabilidade de cair próximo ou longe do personagem
+    float probabilidade = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+
+    if (probabilidade < 0.5f) {
+        obj.x = translateX;
+        obj.z = translateZ;
+    } else {
+        obj.x = rand() % 200 - 100;
+        obj.z = rand() % 200 - 100;
+    }
+
+    obj.y = 50.0f;
+    obj.velocidade = 0.04f;
+    objetos.push_back(obj);
+}
+
+
+void atualizarObjetos() {
+    for (auto it = objetos.begin(); it != objetos.end(); ) {
+        it->y -= it->velocidade;
+        if (it->y <= -0.1f) {
+            it = objetos.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+
+// Função para desenhar os objetos na tela
+void desenharObjetos() {
+    for (const auto &obj : objetos) {
+        glPushMatrix();
+        glTranslatef(obj.x, obj.y, obj.z);
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glutSolidCube(2.0f);
+        //glutSolidSphere(1.0f, 20, 20);
+        glPopMatrix();
+    }
+}
 
 void updateCameraPosition() {
     // Define a posição da câmera atrás do personagem, em relação à sua rotação
@@ -170,7 +225,6 @@ void updateMovement() {
              rotateY = 90.0f;
         }
     }
-
 
     if (keys['v'] && !cameraSwitched) {
         camera = static_cast<CameraView>((camera + 1)%3);
@@ -346,6 +400,7 @@ void Desenha(void) {
 
     glPopMatrix(); // Finaliza a transformação do objeto
 
+    desenharObjetos();
     if(camera == FIRST_PERSON) {
         glutSetCursor(GLUT_CURSOR_NONE);
         desenharReticula();
@@ -356,6 +411,11 @@ void Desenha(void) {
 
 void display() {
     updateMovement();
+    count++;
+    if (count % 50 == 0) {
+        criarObjeto();
+    }
+    atualizarObjetos();
     glutPostRedisplay();
 }
 
