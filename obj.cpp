@@ -19,7 +19,7 @@ CarregarArquivo obj;
 GLfloat translateX = 0.0f, translateY = 0.0f, translateZ = -5.0f;
 GLfloat rotateX = 0.0f, rotateY = 0.0f, rotateZ = 0.0f;
 GLfloat tamX = 1.0f, tamY = 1.0f, tamZ = 1.0f;
-GLfloat movementSpeed = 0.1f;
+GLfloat movementSpeed = 0.02f;
 
 
 // Variáveis para controle da câmera
@@ -42,6 +42,7 @@ GLint dragging = 0;
 GLint draggingTranslate = 0;
 GLint lastX = 0;
 GLint lastY = 0;
+float mouseSensitivity = 0.05f;
 
 // Variáveis para o controle do teclado
 bool keys[256];
@@ -65,10 +66,10 @@ void EspecificaParametrosVisualizacao(void) {
     switch (camera) {
         case THIRD_PERSON:
             updateCameraPosition();
-            gluLookAt(cameraX, cameraY, cameraZ, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
+            gluLookAt(cameraX, cameraY + 2.0f, cameraZ, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
             break;
         case FIRST_PERSON:
-            gluLookAt(translateX, translateY + 1.2f, translateZ, translateX + sin(rotateY + M_PI / 180.0f), translateY + 1.2f + sin(rotateX * M_PI / 180.0f), translateZ + cos(rotateY * M_PI / 180.0f), 0.0f, 1.0f, 0.0f);
+            gluLookAt(translateX, translateY + 1.2f, translateZ, translateX + sin(rotateY * M_PI / 180.0f), translateY + 1.2f + sin(rotateX * M_PI / 180.0f), translateZ + cos(rotateY * M_PI / 180.0f), 0.0f, 1.0f, 0.0f);
             break;
         case FIXED_VIEW:
             gluLookAt(0.0f, 25.0f, -30.0f, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
@@ -92,9 +93,13 @@ void KeysUp(unsigned char key, int x, int y) {
 }
 
 void updateMovement() {
-    // Esta dando problema ao tentar mudar a visão em relaçao ao seu movimento, (ir para direita ele tem que virar para a direita)
     GLfloat dirX = -sin(rotateX * M_PI / 180.0f);
     GLfloat dirZ = -cos(rotateX * M_PI / 180.0f);
+    if (camera == FIRST_PERSON) {
+        dirX = -sin(rotateY * M_PI / 180.0f);
+        dirZ = -cos(rotateY * M_PI / 180.0f);
+    }
+
 
     bool movingForward = keys['w'];
     bool movingBackward = keys['s'];
@@ -110,15 +115,21 @@ void updateMovement() {
             // Diagonal para frente e direita
             translateX += movementSpeed * dirZ;
             translateZ += movementSpeed * dirX;
-            rotateY = -45.0f;
+            if (camera != FIRST_PERSON) {
+                rotateY = -45.0f;
+            }
         } else if (movingLeft && !movingRight) {
             // Diagonal para frente e esquerda
             translateX -= movementSpeed * dirZ;
             translateZ -= movementSpeed * dirX;
-            rotateY = 45.0f;
+            if (camera != FIRST_PERSON) {
+                rotateY = 45.0f;
+            }
         } else {
             // Apenas para frente
-            rotateY = 0.0f;
+            if (camera != FIRST_PERSON) {
+                rotateY = 0.0f;
+            }
         }
     } else if (movingBackward && !movingForward) {
         translateX -= movementSpeed * dirX;
@@ -128,26 +139,36 @@ void updateMovement() {
             // Diagonal para trás e direita
             translateX += movementSpeed * dirZ;
             translateZ += movementSpeed * dirX;
-            rotateY = -135.0f;
+            if (camera != FIRST_PERSON) {
+                rotateY = -135.0f;
+            }
         } else if (movingLeft && !movingRight) {
             // Diagonal para trás e esquerda
             translateX -= movementSpeed * dirZ;
             translateZ -= movementSpeed * dirX;
-            rotateY = 135.0f;
+            if (camera != FIRST_PERSON) {
+                rotateY = 135.0f;
+            }
         } else {
             // Apenas para trás
-            rotateY = 180.0f;
+            if (camera != FIRST_PERSON) {
+                rotateY = 180.0f;
+            }
         }
     } else if (movingRight && !movingLeft) {
         // Apenas para a direita
-        rotateY = -90.0f;
         translateX += movementSpeed * dirZ;
         translateZ += movementSpeed * dirX;
+        if (camera != FIRST_PERSON) {
+            rotateY = -90.0f;
+        }
     } else if (movingLeft && !movingRight) {
         // Apenas para a esquerda
-        rotateY = 90.0f;
         translateX -= movementSpeed * dirZ;
         translateZ -= movementSpeed * dirX;
+        if (camera != FIRST_PERSON) {
+             rotateY = 90.0f;
+        }
     }
 
 
@@ -157,26 +178,62 @@ void updateMovement() {
     } else if (!keys['v']) {
         cameraSwitched = false;
     }
-}
 
-void mouse(int button, int state, int x, int y) {
-    if (button == GLUT_LEFT_BUTTON) {
-        if (state == GLUT_DOWN) {
-            dragging = 1;
-            lastX = x;
-        } else if (state == GLUT_UP) {
-            dragging = 0;
-        }
+    if (keys[27]) {
+        glutSetCursor(GLUT_CURSOR_INHERIT);
     }
 }
 
-void motion(int x, int y) {
-    if (dragging) {
-        int deltaX = x - lastX;
-        rotateY += deltaX * 0.5f;
+void passiveMotion(int x, int y) {
+    if (camera == FIRST_PERSON) {
+        int midX = glutGet(GLUT_WINDOW_WIDTH) / 2;
+        int midY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
+
+        int deltaX = x - midX;
+        int deltaY = y - midY;
+
+        // Controle horizontal (esquerda/direita)
+        rotateY -= deltaX * mouseSensitivity;
+
+        // Controle vertical (cima/baixo), limitando o angulo para não passar dos 90 graus
+        rotateX -= deltaY * mouseSensitivity;
+
+        // Reposiciona o mouse no centro da tela
+        glutWarpPointer(midX, midY);
+
+
+        glutPostRedisplay();
     }
-    lastX = x;
-    glutPostRedisplay();
+}
+
+void desenharReticula() {
+    int screenWidth = glutGet(GLUT_WINDOW_WIDTH);
+    int screenHeight = glutGet(GLUT_WINDOW_HEIGHT);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, screenWidth, 0, screenHeight); // Coordenadas baseadas no tamanho atual da janela
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glColor3f(0.0f, 0.0f, 0.0f);
+
+    int size = 5;
+
+    // Desenhar a retícula no centro da tela
+    glBegin(GL_LINES);
+    glVertex2f(screenWidth / 2 - size, screenHeight / 2);
+    glVertex2f(screenWidth / 2 + size, screenHeight / 2);
+    glVertex2f(screenWidth / 2, screenHeight / 2 - size);
+    glVertex2f(screenWidth / 2, screenHeight / 2 + size);
+    glEnd();
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
 }
 
 void Inicializa(void) {
@@ -188,9 +245,9 @@ void Inicializa(void) {
     glEnable(GL_DEPTH_TEST);
 
     GLfloat luzAmbiente[4] = {0.2f, 0.2f, 0.2f, 1.0f};
-    GLfloat luzDifusa[4] = {1.0f, 0.9f, 0.7f, 1.0f}; // cor
+    GLfloat luzDifusa[4] = {1.0f, 0.9f, 0.7f, 1.0f};    // cor
     GLfloat luzEspecular[4] = {1.0f, 1.0f, 1.0f, 1.0f}; // brilho
-    GLfloat direcaoLuz[4] = {0.0f, 1.0f, 0.0f, 0.0f};  // alto para baixo
+    GLfloat direcaoLuz[4] = {0.0f, 1.0f, 0.0f, 0.0f};   // alto para baixo
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa);
@@ -256,10 +313,10 @@ void Desenha(void) {
     switch (camera) {
         case THIRD_PERSON:
             updateCameraPosition();
-            gluLookAt(cameraX, cameraY, cameraZ, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
+            gluLookAt(cameraX, cameraY + 2.0f, cameraZ, translateX, translateY + 2.0f, translateZ, 0.0f, 1.0f, 0.0f);
             break;
         case FIRST_PERSON:
-            gluLookAt(translateX, translateY + 1.2f, translateZ, translateX + sin(rotateY + M_PI / 180.0f), translateY + 1.2f + sin(rotateX * M_PI / 180.0f), translateZ + cos(rotateY * M_PI / 180.0f), 0.0f, 1.0f, 0.0f);
+            gluLookAt(translateX, translateY + 1.2f, translateZ, translateX + sin(rotateY * M_PI / 180.0f), translateY + 1.2f + sin(rotateX * M_PI / 180.0f), translateZ + cos(rotateY * M_PI / 180.0f), 0.0f, 1.0f, 0.0f);
             break;
         case FIXED_VIEW:
             gluLookAt(0.0f, 25.0f, -30.0f, translateX, translateY, translateZ, 0.0f, 1.0f, 0.0f);
@@ -275,12 +332,11 @@ void Desenha(void) {
 
     // Aplicar as transformações ao objeto separadamente
     glPushMatrix();
-    // Aplicar as transformações de translação, rotação e escala do objeto
-    glTranslatef(translateX, translateY, translateZ); // Transladar o objeto
+    glTranslatef(translateX, translateY, translateZ);           // Transladar o objeto
     glRotatef(rotateX, 1.0f, 0.0f, 0.0f);            // Rotacionar ao redor do eixo X
     glRotatef(rotateY, 0.0f, 1.0f, 0.0f);            // Rotacionar ao redor do eixo Y
     glRotatef(rotateZ, 0.0f, 0.0f, 1.0f);            // Rotacionar ao redor do eixo Z
-    glScalef(tamX, tamY, tamZ);                      // Escalar o objeto
+    glScalef(tamX, tamY, tamZ);                                 // Escalar o objeto
 
     // Desenhar o objeto
     if (camera == FIRST_PERSON) {
@@ -289,6 +345,11 @@ void Desenha(void) {
     ObjSolid();
 
     glPopMatrix(); // Finaliza a transformação do objeto
+
+    if(camera == FIRST_PERSON) {
+        glutSetCursor(GLUT_CURSOR_NONE);
+        desenharReticula();
+    }
 
     glutSwapBuffers();
 }
@@ -312,9 +373,10 @@ int main(int argc, char** argv) {
     glutKeyboardFunc(Keys);
     glutKeyboardUpFunc(KeysUp);
     glutIdleFunc(display);
-    glutMouseFunc(mouse);
-    glutMotionFunc(motion);
+    //glutMouseFunc(mouse);
+    //glutMotionFunc(motion);
     //glutMouseWheelFunc(mouseWheel);
+    glutPassiveMotionFunc(passiveMotion);
 
     glutMainLoop();
     return 0;
