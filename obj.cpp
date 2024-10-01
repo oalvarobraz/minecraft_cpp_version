@@ -96,7 +96,7 @@ void updateMovement() {
     GLfloat dirX = -sin(rotateX * M_PI / 180.0f);
     GLfloat dirZ = -cos(rotateX * M_PI / 180.0f);
     if (camera == FIRST_PERSON) {
-        dirX = -sin(rotateY * M_PI / 180.0f);
+        dirX = sin(rotateY * M_PI / 180.0f);
         dirZ = -cos(rotateY * M_PI / 180.0f);
     }
 
@@ -192,10 +192,10 @@ void passiveMotion(int x, int y) {
         int deltaX = x - midX;
         int deltaY = y - midY;
 
-        // Controle horizontal (esquerda/direita)
+        // Controle horizontal
         rotateY -= deltaX * mouseSensitivity;
 
-        // Controle vertical (cima/baixo), limitando o angulo para não passar dos 90 graus
+        // Controle vertical
         rotateX -= deltaY * mouseSensitivity;
 
         // Reposiciona o mouse no centro da tela
