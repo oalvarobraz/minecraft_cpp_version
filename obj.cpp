@@ -8,7 +8,7 @@ using namespace std;
 
 //////////////////////////////////////////////////////
 //                                                  //
-// Álvaro Braz Cunha                                //
+// ?lvaro Braz Cunha                                //
 // Diego Sanches Nere dos Santos                    //
 //                                                  //
 //////////////////////////////////////////////////////
@@ -16,14 +16,14 @@ using namespace std;
 
 CarregarArquivo obj;
 
-// Variáveis de controle do personagem
+// Vari?veis de controle do personagem
 GLfloat translateX = 0.0f, translateY = 0.0f, translateZ = -5.0f;
 GLfloat rotateX = 0.0f, rotateY = 0.0f, rotateZ = 0.0f;
 GLfloat tamX = 1.0f, tamY = 1.0f, tamZ = 1.0f;
 GLfloat movementSpeed = 0.02f;
 
 
-// Variáveis para controle da câmera
+// Vari?veis para controle da c?mera
 GLfloat cameraX = 0.0f, cameraY = 1.0f, cameraZ = 5.0f;
 GLfloat lookX = 0.0f, lookY = 0.0f, lookZ = 0.0f;
 bool followCamera = false;
@@ -38,18 +38,18 @@ enum CameraView {
 };
 CameraView camera = FIXED_VIEW;
 
-// Variáveis para o controle do mouse
+// Vari?veis para o controle do mouse
 GLint dragging = 0;
 GLint draggingTranslate = 0;
 GLint lastX = 0;
 GLint lastY = 0;
 float mouseSensitivity = 0.05f;
 
-// Variáveis para o controle do teclado
+// Vari?veis para o controle do teclado
 bool keys[256];
 float originalRotateX = 0.0f, originalRotateY = 0.0f;
 
-// Variáveis de controle de objetos
+// Vari?veis de controle de objetos
 struct ObjetoCair {
     GLfloat x, y, z;
     GLfloat velocidade;
@@ -59,23 +59,23 @@ std::vector<ObjetoCair> objetos;
 int count = 0;
 
 
-// Função para criar objetos caindo do céu
+// Fun??o para criar objetos caindo do c?u
 void criarObjeto() {
     ObjetoCair obj;
 
-    // Definir a probabilidade de cair próximo ou longe do personagem
+    // Definir a probabilidade de cair pr?ximo ou longe do personagem
     float probabilidade = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
     if (probabilidade < 0.5f) {
-        obj.x = translateX;
-        obj.z = translateZ;
+        obj.x = translateX + rand()/static_cast<float>(RAND_MAX);
+        obj.z = translateZ + rand()/static_cast<float>(RAND_MAX);
     } else {
         obj.x = rand() % 200 - 100;
         obj.z = rand() % 200 - 100;
     }
 
     obj.y = 50.0f;
-    obj.velocidade = 0.04f;
+    obj.velocidade = 0.035f;
     objetos.push_back(obj);
 }
 
@@ -83,7 +83,7 @@ void criarObjeto() {
 void atualizarObjetos() {
     for (auto it = objetos.begin(); it != objetos.end(); ) {
         it->y -= it->velocidade;
-        if (it->y <= -0.1f) {
+        if (it->y <= -10.0f) {
             it = objetos.erase(it);
         } else {
             ++it;
@@ -92,23 +92,23 @@ void atualizarObjetos() {
 }
 
 
-// Função para desenhar os objetos na tela
+// Fun??o para desenhar os objetos na tela
 void desenharObjetos() {
     for (const auto &obj : objetos) {
         glPushMatrix();
         glTranslatef(obj.x, obj.y, obj.z);
         glColor3f(1.0f, 0.0f, 0.0f);
-        glutSolidCube(2.0f);
+        glutSolidCube(10.0f);
         //glutSolidSphere(1.0f, 20, 20);
         glPopMatrix();
     }
 }
 
 void updateCameraPosition() {
-    // Define a posição da câmera atrás do personagem, em relação à sua rotação
+    // Define a posi??o da c?mera atr?s do personagem, em rela??o ? sua rota??o
     cameraX = translateX + cameraOffsetZ * sin(rotateX * M_PI / 180.0f);
     cameraZ = translateZ - cameraOffsetZ * cos(rotateX * M_PI / 180.0f);
-    cameraY = translateY + cameraOffsetY;  // Define a altura da câmera
+    cameraY = translateY + cameraOffsetY;  // Define a altura da c?mera
 }
 
 
@@ -161,7 +161,7 @@ void updateMovement() {
     bool movingLeft = keys['a'];
     bool movingRight = keys['d'];
 
-    // Movimentação
+    // Movimenta??o
     if (movingForward && !movingBackward) {
         translateX += movementSpeed * dirX;
         translateZ -= movementSpeed * dirZ;
@@ -191,21 +191,21 @@ void updateMovement() {
         translateZ += movementSpeed * dirZ;
 
         if (movingRight && !movingLeft) {
-            // Diagonal para trás e direita
+            // Diagonal para tr?s e direita
             translateX += movementSpeed * dirZ;
             translateZ += movementSpeed * dirX;
             if (camera != FIRST_PERSON) {
                 rotateY = -135.0f;
             }
         } else if (movingLeft && !movingRight) {
-            // Diagonal para trás e esquerda
+            // Diagonal para tr?s e esquerda
             translateX -= movementSpeed * dirZ;
             translateZ -= movementSpeed * dirX;
             if (camera != FIRST_PERSON) {
                 rotateY = 135.0f;
             }
         } else {
-            // Apenas para trás
+            // Apenas para tr?s
             if (camera != FIRST_PERSON) {
                 rotateY = 180.0f;
             }
@@ -276,7 +276,7 @@ void desenharReticula() {
 
     int size = 5;
 
-    // Desenhar a retícula no centro da tela
+    // Desenhar a ret?cula no centro da tela
     glBegin(GL_LINES);
     glVertex2f(screenWidth / 2 - size, screenHeight / 2);
     glVertex2f(screenWidth / 2 + size, screenHeight / 2);
@@ -334,6 +334,8 @@ void Piso(float escala, float altura, GLfloat translateX, GLfloat translateY, GL
 
 
 void ObjSolid(void) {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_steve);
     glPushMatrix();
 
     GLfloat materialAmbiente[] = {0.2f, 0.2f, 0.2f, 1.0f};
@@ -353,16 +355,19 @@ void ObjSolid(void) {
             glNormal3fv(nor);
             GLfloat vert[3] = {obj.vertices[obj.faces[j][i][0]][0], obj.vertices[obj.faces[j][i][0]][1], obj.vertices[obj.faces[j][i][0]][2]};
             glVertex3fv(vert);
+            GLfloat tex[2] {obj.texturas[obj.faces[j][i][1]][0], obj.texturas[obj.faces[j][i][1]][1]};
+            glTexCoord2fv(tex);
         }
         glEnd();
     }
     glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
 }
 
 void Desenha(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Aplicar a mesma configuração de câmera
+    // Aplicar a mesma configura??o de c?mera
     glLoadIdentity();
     switch (camera) {
         case THIRD_PERSON:
@@ -377,14 +382,14 @@ void Desenha(void) {
             break;
     }
 
-    // Desenhar o piso sem transformações
+    // Desenhar o piso sem transforma??es
     glPushMatrix();
     obj.CarregarTextura();
 
     Piso(1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 50.0); //terreno fixo
     glPopMatrix();
 
-    // Aplicar as transformações ao objeto separadamente
+    // Aplicar as transforma??es ao objeto separadamente
     glPushMatrix();
     glTranslatef(translateX, translateY, translateZ);           // Transladar o objeto
     glRotatef(rotateX, 1.0f, 0.0f, 0.0f);            // Rotacionar ao redor do eixo X
@@ -396,9 +401,10 @@ void Desenha(void) {
     if (camera == FIRST_PERSON) {
         glScalef(0.0f, 0.0f, 0.0f);
     }
-    ObjSolid();
+    obj.CarregarTexturaSteve();
 
-    glPopMatrix(); // Finaliza a transformação do objeto
+    ObjSolid();
+    glPopMatrix(); // Finaliza a transforma??o do objeto
 
     desenharObjetos();
     if(camera == FIRST_PERSON) {
@@ -412,7 +418,7 @@ void Desenha(void) {
 void display() {
     updateMovement();
     count++;
-    if (count % 50 == 0) {
+    if (count % 1000 == 0) {
         criarObjeto();
     }
     atualizarObjetos();

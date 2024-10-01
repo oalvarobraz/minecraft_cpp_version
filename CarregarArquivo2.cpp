@@ -17,6 +17,7 @@ public:
     vector<vector<vector<GLint> > > faces; //guarda as faces
     GLubyte floor[512][512][3];
     GLuint textura_id;
+    GLuint textura_id_steve;
 
 
     CarregarArquivo()
@@ -360,6 +361,40 @@ public:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
             texturaCarregada = true;
+        } catch (const exception &e) {
+            cout << "Erro ao ler o arquivo";
+        }
+    }
+
+    void CarregarTexturaSteve() {
+        try {
+            ifstream arq("steve.bmp", ios::binary);
+            char c;
+            if(!arq) cout << "Erro ao abrir arquivo";
+
+            // Ignorar cabe alho BMP
+            for(int i = 0; i < 54; i++) c = arq.get();
+
+            unsigned char steve[64][64][3];
+            for(int i = 0; i < 64; i++)
+                for (int j = 0; j < 64; j++) {
+                    c = arq.get(); steve[i][j][2] = c;
+                    c = arq.get(); steve[i][j][1] = c;
+                    c = arq.get(); steve[i][j][0] = c;
+                }
+            arq.close();
+            arq.clear();
+
+            // Gerar e associar a textura no OpenGL
+
+            glGenTextures(2, &textura_id_steve);
+            glBindTexture(GL_TEXTURE_2D, textura_id_steve);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, steve);
+
+            // Definir par metros de filtro de textura
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
         } catch (const exception &e) {
             cout << "Erro ao ler o arquivo";
         }
