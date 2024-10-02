@@ -16,6 +16,8 @@ public:
     vector<vector<GLfloat> > texturas;  //guarda as texturas
     vector<vector<vector<GLint> > > faces; //guarda as faces
     GLubyte floor[512][512][3];
+    GLubyte steve[64][64][3];
+
     GLuint textura_id;
     GLuint textura_id_steve;
 
@@ -367,15 +369,19 @@ public:
     }
 
     void CarregarTexturaSteve() {
+        static bool texturaCarregada = false;
+
+        if (texturaCarregada) {
+            return;
+        }
+
         try {
             ifstream arq("steve.bmp", ios::binary);
             char c;
             if(!arq) cout << "Erro ao abrir arquivo";
 
             // Ignorar cabe alho BMP
-            for(int i = 0; i < 54; i++) c = arq.get();
-
-            unsigned char steve[64][64][3];
+            for(int i = 0; i < 4234; i++) c = arq.get();
             for(int i = 0; i < 64; i++)
                 for (int j = 0; j < 64; j++) {
                     c = arq.get(); steve[i][j][2] = c;
@@ -395,6 +401,7 @@ public:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+            texturaCarregada = true;
         } catch (const exception &e) {
             cout << "Erro ao ler o arquivo";
         }
