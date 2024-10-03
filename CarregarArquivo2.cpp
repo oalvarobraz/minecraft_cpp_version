@@ -376,12 +376,12 @@ public:
         }
 
         try {
-            ifstream arq("steve.bmp", ios::binary);
+            ifstream arq("steveBlender.bmp", ios::binary);
             char c;
             if(!arq) cout << "Erro ao abrir arquivo";
 
             // Ignorar cabe alho BMP
-            for(int i = 0; i < 4234; i++) c = arq.get();
+            for(int i = 0; i < 54; i++) c = arq.get();
             for(int i = 0; i < 64; i++)
                 for (int j = 0; j < 64; j++) {
                     c = arq.get(); steve[i][j][2] = c;
