@@ -17,9 +17,15 @@ public:
     vector<vector<vector<GLint> > > faces; //guarda as faces
     GLubyte floor[512][512][3];
     GLubyte steve[64][64][3];
+    GLubyte sky[2000][2000][3];
 
     GLuint textura_id;
     GLuint textura_id_steve;
+    GLuint textura_id_skybox[6];
+
+#ifndef GL_CLAMP_TO_EDGE
+#define GL_CLAMP_TO_EDGE 0x812F
+#endif
 
 
     CarregarArquivo()
@@ -406,5 +412,104 @@ public:
             cout << "Erro ao ler o arquivo";
         }
     }
+
+GLuint CarregarTexturaTGA(const char* arquivo, GLint larguraFinal = 1024, GLint alturaFinal = 1024) {
+    FILE* file = fopen(arquivo, "rb");
+    if (!file) {
+        cout << "Erro ao abrir arquivo: " << arquivo << endl;
+        return 0;
+    }
+
+    GLubyte header[18]; // Cabeçalho do TGA
+    fread(header, sizeof(GLubyte), 18, file);
+
+    GLint larguraOriginal = header[12] + (header[13] << 8);
+    GLint alturaOriginal = header[14] + (header[15] << 8);
+    GLubyte profundidade = header[16];
+
+    GLint formato = (profundidade == 32) ? GL_RGBA : GL_RGB;
+
+    GLubyte* dados = new GLubyte[larguraOriginal * alturaOriginal * (profundidade / 8)];
+    fread(dados, sizeof(GLubyte), larguraOriginal * alturaOriginal * (profundidade / 8), file);
+
+    fclose(file);
+
+    // Redimensionar a imagem para o tamanho final (1024x1024)
+    GLubyte* dadosRedimensionados = new GLubyte[larguraFinal * alturaFinal * (profundidade / 8)];
+
+    // Realiza interpolação bilinear
+    for (int y = 0; y < alturaFinal; ++y) {
+        for (int x = 0; x < larguraFinal; ++x) {
+            // Mapeia as coordenadas da imagem de destino para a imagem original
+            float xOriginal = (float)x / larguraFinal * (larguraOriginal - 1);
+            float yOriginal = (float)y / alturaFinal * (alturaOriginal - 1);
+
+            int x0 = (int)xOriginal;
+            int y0 = (int)yOriginal;
+            int x1 = min(x0 + 1, larguraOriginal - 1);
+            int y1 = min(y0 + 1, alturaOriginal - 1);
+
+            // Interpolação bilinear
+            for (int c = 0; c < (profundidade / 8); ++c) {
+                float dx = xOriginal - x0;
+                float dy = yOriginal - y0;
+
+                // Cálculo dos valores dos quatro pixels
+                GLubyte p00 = dados[(y0 * larguraOriginal + x0) * (profundidade / 8) + c];
+                GLubyte p10 = dados[(y0 * larguraOriginal + x1) * (profundidade / 8) + c];
+                GLubyte p01 = dados[(y1 * larguraOriginal + x0) * (profundidade / 8) + c];
+                GLubyte p11 = dados[(y1 * larguraOriginal + x1) * (profundidade / 8) + c];
+
+                // Interpolação linear em x
+                float interpX0 = (1 - dx) * p00 + dx * p10;
+                float interpX1 = (1 - dx) * p01 + dx * p11;
+
+                // Interpolação linear em y
+                float finalColor = (1 - dy) * interpX0 + dy * interpX1;
+
+                dadosRedimensionados[(y * larguraFinal + x) * (profundidade / 8) + c] = (GLubyte)min(max(0.0f, finalColor), 255.0f);
+            }
+        }
+    }
+
+    // Gerar a textura
+    GLuint idTextura;
+    glGenTextures(1, &idTextura);
+    glBindTexture(GL_TEXTURE_2D, idTextura);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, formato, larguraFinal, alturaFinal, 0, formato, GL_UNSIGNED_BYTE, dadosRedimensionados);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    delete[] dados;
+    delete[] dadosRedimensionados;
+
+    return idTextura;
+}
+
+void CarregarTexturaSkybox() {
+    static bool texturaCarregada = false;
+
+    if (texturaCarregada) {
+        return;
+    }
+
+    // Carrega as texturas da skybox, redimensionando todas para 1024x1024
+        textura_id_skybox[0] = CarregarTexturaTGA("right.tga");
+        textura_id_skybox[1] = CarregarTexturaTGA("left.tga");
+        textura_id_skybox[2] = CarregarTexturaTGA("back.tga");
+        textura_id_skybox[3] = CarregarTexturaTGA("front.tga");
+
+
+    textura_id_skybox[4] = CarregarTexturaTGA("top.tga");
+    textura_id_skybox[5] = CarregarTexturaTGA("bottom.tga");
+
+    texturaCarregada = true;
+}
+
+
 
 };

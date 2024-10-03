@@ -38,6 +38,12 @@ enum CameraView {
 };
 CameraView camera = FIXED_VIEW;
 
+const GLfloat floorMinX = -100.0f;
+const GLfloat floorMaxX = 100.0f;
+const GLfloat floorMinZ = -100.0f;
+const GLfloat floorMaxZ = 100.0f;
+
+
 // Vari?veis para o controle do mouse
 GLint dragging = 0;
 GLint draggingTranslate = 0;
@@ -155,72 +161,128 @@ void updateMovement() {
         dirZ = -cos(rotateY * M_PI / 180.0f);
     }
 
-
     bool movingForward = keys['w'];
     bool movingBackward = keys['s'];
     bool movingLeft = keys['a'];
     bool movingRight = keys['d'];
 
-    // Movimenta??o
+    // Movimentação
     if (movingForward && !movingBackward) {
-        translateX += movementSpeed * dirX;
-        translateZ -= movementSpeed * dirZ;
+        GLfloat newTranslateX = translateX + movementSpeed * dirX;
+        GLfloat newTranslateZ = translateZ - movementSpeed * dirZ;
+
+        // Limitar a movimentação dentro das bordas do piso
+        if (newTranslateX >= floorMinX && newTranslateX <= floorMaxX) {
+            translateX = newTranslateX;
+        }
+        if (newTranslateZ >= floorMinZ && newTranslateZ <= floorMaxZ) {
+            translateZ = newTranslateZ;
+        }
 
         if (movingRight && !movingLeft) {
             // Diagonal para frente e direita
-            translateX += movementSpeed * dirZ;
-            translateZ += movementSpeed * dirX;
+            newTranslateX = translateX + movementSpeed * dirZ;
+            newTranslateZ = translateZ + movementSpeed * dirX;
+
+            if (newTranslateX >= floorMinX && newTranslateX <= floorMaxX) {
+                translateX = newTranslateX;
+            }
+            if (newTranslateZ >= floorMinZ && newTranslateZ <= floorMaxZ) {
+                translateZ = newTranslateZ;
+            }
+
             if (camera != FIRST_PERSON) {
                 rotateY = -45.0f;
             }
         } else if (movingLeft && !movingRight) {
             // Diagonal para frente e esquerda
-            translateX -= movementSpeed * dirZ;
-            translateZ -= movementSpeed * dirX;
+            newTranslateX = translateX - movementSpeed * dirZ;
+            newTranslateZ = translateZ - movementSpeed * dirX;
+
+            if (newTranslateX >= floorMinX && newTranslateX <= floorMaxX) {
+                translateX = newTranslateX;
+            }
+            if (newTranslateZ >= floorMinZ && newTranslateZ <= floorMaxZ) {
+                translateZ = newTranslateZ;
+            }
+
             if (camera != FIRST_PERSON) {
                 rotateY = 45.0f;
             }
         } else {
-            // Apenas para frente
             if (camera != FIRST_PERSON) {
                 rotateY = 0.0f;
             }
         }
     } else if (movingBackward && !movingForward) {
-        translateX -= movementSpeed * dirX;
-        translateZ += movementSpeed * dirZ;
+        GLfloat newTranslateX = translateX - movementSpeed * dirX;
+        GLfloat newTranslateZ = translateZ + movementSpeed * dirZ;
+
+        if (newTranslateX >= floorMinX && newTranslateX <= floorMaxX) {
+            translateX = newTranslateX;
+        }
+        if (newTranslateZ >= floorMinZ && newTranslateZ <= floorMaxZ) {
+            translateZ = newTranslateZ;
+        }
 
         if (movingRight && !movingLeft) {
-            // Diagonal para tr?s e direita
-            translateX += movementSpeed * dirZ;
-            translateZ += movementSpeed * dirX;
+            newTranslateX = translateX + movementSpeed * dirZ;
+            newTranslateZ = translateZ + movementSpeed * dirX;
+
+            if (newTranslateX >= floorMinX && newTranslateX <= floorMaxX) {
+                translateX = newTranslateX;
+            }
+            if (newTranslateZ >= floorMinZ && newTranslateZ <= floorMaxZ) {
+                translateZ = newTranslateZ;
+            }
+
             if (camera != FIRST_PERSON) {
                 rotateY = -135.0f;
             }
         } else if (movingLeft && !movingRight) {
-            // Diagonal para tr?s e esquerda
-            translateX -= movementSpeed * dirZ;
-            translateZ -= movementSpeed * dirX;
+            newTranslateX = translateX - movementSpeed * dirZ;
+            newTranslateZ = translateZ - movementSpeed * dirX;
+
+            if (newTranslateX >= floorMinX && newTranslateX <= floorMaxX) {
+                translateX = newTranslateX;
+            }
+            if (newTranslateZ >= floorMinZ && newTranslateZ <= floorMaxZ) {
+                translateZ = newTranslateZ;
+            }
+
             if (camera != FIRST_PERSON) {
                 rotateY = 135.0f;
             }
         } else {
-            // Apenas para tr?s
             if (camera != FIRST_PERSON) {
                 rotateY = 180.0f;
             }
         }
     } else if (movingRight && !movingLeft) {
-        // Apenas para a direita
-        translateX += movementSpeed * dirZ;
-        translateZ += movementSpeed * dirX;
+        GLfloat newTranslateX = translateX + movementSpeed * dirZ;
+        GLfloat newTranslateZ = translateZ + movementSpeed * dirX;
+
+        if (newTranslateX >= floorMinX && newTranslateX <= floorMaxX) {
+            translateX = newTranslateX;
+        }
+        if (newTranslateZ >= floorMinZ && newTranslateZ <= floorMaxZ) {
+            translateZ = newTranslateZ;
+        }
+
         if (camera != FIRST_PERSON) {
             rotateY = -90.0f;
         }
     } else if (movingLeft && !movingRight) {
-        // Apenas para a esquerda
-        translateX -= movementSpeed * dirZ;
-        translateZ -= movementSpeed * dirX;
+        GLfloat newTranslateX = translateX - movementSpeed * dirZ;
+        GLfloat newTranslateZ = translateZ - movementSpeed * dirX;
+
+        if (newTranslateX >= floorMinX && newTranslateX <= floorMaxX) {
+            translateX = newTranslateX;
+        }
+        if (newTranslateZ >= floorMinZ && newTranslateZ <= floorMaxZ) {
+            translateZ = newTranslateZ;
+        }
+
         if (camera != FIRST_PERSON) {
              rotateY = 90.0f;
         }
@@ -237,6 +299,7 @@ void updateMovement() {
         glutSetCursor(GLUT_CURSOR_INHERIT);
     }
 }
+
 
 void passiveMotion(int x, int y) {
     if (camera == FIRST_PERSON) {
@@ -311,7 +374,6 @@ void Inicializa(void) {
     EspecificaParametrosVisualizacao();
 
     obj.Carregar("steveBlender.obj");
-
 }
 
 void Piso(float escala, float altura, GLfloat translateX, GLfloat translateY, GLfloat translateZ, GLfloat rotateX, GLfloat rotateY, GLfloat rotateZ, float repeatFactor) {
@@ -364,6 +426,71 @@ void ObjSolid(void) {
     glDisable(GL_TEXTURE_2D);
 }
 
+void DrawSkybox(float size) {
+    glDisable(GL_LIGHTING); // Desativa iluminação para não influenciar a skybox
+    glEnable(GL_TEXTURE_2D); // Habilita texturas
+    glColor3f(0.788f, 0.898f, 0.961f);
+
+    // Frente
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_skybox[0]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-size, -size, -size);
+        glTexCoord2f(1.0, 0.0); glVertex3f( size, -size, -size);
+        glTexCoord2f(1.0, 1.0); glVertex3f( size,  size, -size);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-size,  size, -size);
+    glEnd();
+
+    // Trás
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_skybox[1]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f( size, -size,  size);
+        glTexCoord2f(1.0, 0.0); glVertex3f(-size, -size,  size);
+        glTexCoord2f(1.0, 1.0); glVertex3f(-size,  size,  size);
+        glTexCoord2f(0.0, 1.0); glVertex3f( size,  size,  size);
+    glEnd();
+
+    // Esquerda
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_skybox[2]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-size, -size,  size);
+        glTexCoord2f(1.0, 0.0); glVertex3f(-size, -size, -size);
+        glTexCoord2f(1.0, 1.0); glVertex3f(-size,  size, -size);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-size,  size,  size);
+    glEnd();
+
+    // Direita
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_skybox[3]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f( size, -size, -size);
+        glTexCoord2f(1.0, 0.0); glVertex3f( size, -size,  size);
+        glTexCoord2f(1.0, 1.0); glVertex3f( size,  size,  size);
+        glTexCoord2f(0.0, 1.0); glVertex3f( size,  size, -size);
+    glEnd();
+
+    // Topo
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_skybox[4]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-size,  size, -size);
+        glTexCoord2f(1.0, 0.0); glVertex3f( size,  size, -size);
+        glTexCoord2f(1.0, 1.0); glVertex3f( size,  size,  size);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-size,  size,  size);
+    glEnd();
+
+    // Base
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_skybox[5]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-size, -size,  size);
+        glTexCoord2f(1.0, 0.0); glVertex3f( size, -size,  size);
+        glTexCoord2f(1.0, 1.0); glVertex3f( size, -size, -size);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-size, -size, -size);
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D); // Desativa texturas
+    glEnable(GL_LIGHTING); // Reativa iluminação, caso esteja utilizando
+}
+
+
+
 void Desenha(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -411,6 +538,11 @@ void Desenha(void) {
         glutSetCursor(GLUT_CURSOR_NONE);
         desenharReticula();
     }
+
+    glPushMatrix();
+    obj.CarregarTexturaSkybox();
+    DrawSkybox(200.0f);
+    glPopMatrix();
 
     glutSwapBuffers();
 }
