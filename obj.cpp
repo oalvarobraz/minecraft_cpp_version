@@ -19,7 +19,7 @@ CarregarArquivo obj;
 // Vari?veis de controle do personagem
 GLfloat translateX = 0.0f, translateY = 0.0f, translateZ = -5.0f;
 GLfloat rotateX = 0.0f, rotateY = 0.0f, rotateZ = 0.0f;
-GLfloat tamX = 1.0f, tamY = 1.0f, tamZ = 1.0f;
+GLfloat tamX = 3.0f, tamY = 3.0f, tamZ = 3.0f;
 GLfloat movementSpeed = 0.02f;
 
 
@@ -310,7 +310,7 @@ void Inicializa(void) {
 
     EspecificaParametrosVisualizacao();
 
-    obj.Carregar("steve.obj");
+    obj.Carregar("steveBlender.obj");
 
 }
 
