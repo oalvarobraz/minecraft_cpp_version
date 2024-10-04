@@ -18,10 +18,12 @@ public:
     GLubyte floor[512][512][3];
     GLubyte steve[64][64][3];
     GLubyte sky[2000][2000][3];
+    GLubyte bloco[256][256][3];
 
     GLuint textura_id;
     GLuint textura_id_steve;
     GLuint textura_id_skybox[6];
+    GLuint textura_id_blocos;
 
 #ifndef GL_CLAMP_TO_EDGE
 #define GL_CLAMP_TO_EDGE 0x812F
@@ -510,6 +512,41 @@ void CarregarTexturaSkybox() {
     texturaCarregada = true;
 }
 
+    void CarregarTexturaBlocos() {
+        static bool texturaCarregada = false;
+
+        if (texturaCarregada) {
+            return;
+        }
+
+        try {
+            ifstream arq("meteoro.bmp", ios::binary); // Substitua "block_texture.bmp" pelo nome da textura do bloco.
+            char c;
+            if (!arq) cout << "Erro ao abrir arquivo";
+
+            // Pular cabeçalho BMP
+            for (int i = 0; i < 54; i++) c = arq.get();
+            for (int i = 0; i < 256; i++) {
+                for (int j = 0; j < 256; j++) {
+                    c = arq.get(); bloco[i][j][2] = c;
+                    c = arq.get(); bloco[i][j][1] = c;
+                    c = arq.get(); bloco[i][j][0] = c;
+                }
+            }
+            arq.close();
+
+            glGenTextures(3, &textura_id_blocos);
+            glBindTexture(GL_TEXTURE_2D, textura_id_blocos);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, bloco);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            texturaCarregada = true;
+        } catch (const exception &e) {
+            cout << "Erro ao ler o arquivo de textura dos blocos";
+        }
+    }
 
 
 };
