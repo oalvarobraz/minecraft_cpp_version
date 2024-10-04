@@ -100,14 +100,57 @@ void atualizarObjetos() {
 
 // Fun??o para desenhar os objetos na tela
 void desenharObjetos() {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_blocos);
     for (const auto &obj : objetos) {
         glPushMatrix();
+        // Translada o objeto para a posição correta
         glTranslatef(obj.x, obj.y, obj.z);
-        glColor3f(1.0f, 0.0f, 0.0f);
-        glutSolidCube(10.0f);
-        //glutSolidSphere(1.0f, 20, 20);
-        glPopMatrix();
+
+        // Desenho do cubo com as coordenadas de textura
+        glBegin(GL_QUADS);
+
+        // Frente
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-5.0f, -5.0f,  5.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( 5.0f, -5.0f,  5.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( 5.0f,  5.0f,  5.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-5.0f,  5.0f,  5.0f);
+
+        // Trás
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( 5.0f, -5.0f, -5.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-5.0f, -5.0f, -5.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-5.0f,  5.0f, -5.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( 5.0f,  5.0f, -5.0f);
+
+        // Lado esquerdo
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-5.0f, -5.0f, -5.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-5.0f, -5.0f,  5.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-5.0f,  5.0f,  5.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-5.0f,  5.0f, -5.0f);
+
+        // Lado direito
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( 5.0f, -5.0f,  5.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( 5.0f, -5.0f, -5.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( 5.0f,  5.0f, -5.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( 5.0f,  5.0f,  5.0f);
+
+        // Cima
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-5.0f,  5.0f,  5.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( 5.0f,  5.0f,  5.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( 5.0f,  5.0f, -5.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-5.0f,  5.0f, -5.0f);
+
+        // Baixo
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-5.0f, -5.0f, -5.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( 5.0f, -5.0f, -5.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( 5.0f, -5.0f,  5.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-5.0f, -5.0f,  5.0f);
+
+        glEnd(); // Fim do desenho do cubo
+
+        glPopMatrix(); // Retorna à matriz anterior
     }
+    glDisable(GL_TEXTURE_2D);
 }
 
 void updateCameraPosition() {
@@ -299,7 +342,6 @@ void updateMovement() {
         glutSetCursor(GLUT_CURSOR_INHERIT);
     }
 }
-
 
 void passiveMotion(int x, int y) {
     if (camera == FIRST_PERSON) {
@@ -533,7 +575,10 @@ void Desenha(void) {
     ObjSolid();
     glPopMatrix(); // Finaliza a transforma??o do objeto
 
+    glPushMatrix();
+    obj.CarregarTexturaBlocos();
     desenharObjetos();
+    glPopMatrix();
     if(camera == FIRST_PERSON) {
         glutSetCursor(GLUT_CURSOR_NONE);
         desenharReticula();
