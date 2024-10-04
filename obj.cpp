@@ -533,6 +533,70 @@ void DrawSkybox(float size) {
 
 
 
+void DrawSkybox2(float size) {
+     glDisable(GL_LIGHTING); // Desativa iluminação para não influenciar a skybox
+    glEnable(GL_TEXTURE_2D); // Habilita texturas
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    // Frente
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_sky[0]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-size, -size, -size);
+        glTexCoord2f(1.0, 0.0); glVertex3f( size, -size, -size);
+        glTexCoord2f(1.0, 1.0); glVertex3f( size,  size, -size);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-size,  size, -size);
+    glEnd();
+
+    // Trás
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_sky[1]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f( size, -size,  size);
+        glTexCoord2f(1.0, 0.0); glVertex3f(-size, -size,  size);
+        glTexCoord2f(1.0, 1.0); glVertex3f(-size,  size,  size);
+        glTexCoord2f(0.0, 1.0); glVertex3f( size,  size,  size);
+    glEnd();
+
+    // Esquerda
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_sky[2]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-size, -size,  size);
+        glTexCoord2f(1.0, 0.0); glVertex3f(-size, -size, -size);
+        glTexCoord2f(1.0, 1.0); glVertex3f(-size,  size, -size);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-size,  size,  size);
+    glEnd();
+
+    // Direita
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_sky[3]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f( size, -size, -size);
+        glTexCoord2f(1.0, 0.0); glVertex3f( size, -size,  size);
+        glTexCoord2f(1.0, 1.0); glVertex3f( size,  size,  size);
+        glTexCoord2f(0.0, 1.0); glVertex3f( size,  size, -size);
+    glEnd();
+
+    // Topo
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_sky[4]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-size,  size, -size);
+        glTexCoord2f(1.0, 0.0); glVertex3f( size,  size, -size);
+        glTexCoord2f(1.0, 1.0); glVertex3f( size,  size,  size);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-size,  size,  size);
+    glEnd();
+
+    // Base
+    glBindTexture(GL_TEXTURE_2D, obj.textura_id_sky[5]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-size, -size,  size);
+        glTexCoord2f(1.0, 0.0); glVertex3f( size, -size,  size);
+        glTexCoord2f(1.0, 1.0); glVertex3f( size, -size, -size);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-size, -size, -size);
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D); // Desativa texturas
+    glEnable(GL_LIGHTING); // Reativa iluminação, caso esteja utilizando
+}
+
+
 void Desenha(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -585,8 +649,8 @@ void Desenha(void) {
     }
 
     glPushMatrix();
-    obj.CarregarTexturaSkybox();
-    DrawSkybox(200.0f);
+    obj.CarregarTexturas();
+    DrawSkybox2(200.0f);
     glPopMatrix();
 
     glutSwapBuffers();
