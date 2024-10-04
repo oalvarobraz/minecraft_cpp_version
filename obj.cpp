@@ -64,6 +64,8 @@ struct ObjetoCair {
 std::vector<ObjetoCair> objetos;
 int count = 0;
 
+bool isPaused = false;
+
 
 // Fun??o para criar objetos caindo do c?u
 void criarObjeto() {
@@ -86,9 +88,37 @@ void criarObjeto() {
 }
 
 
+bool verificarColisao(GLfloat objX, GLfloat objY, GLfloat objZ, GLfloat tamX, GLfloat tamY, GLfloat tamZ) {
+    return (translateX + tamX/2 > objX - 5.0f && translateX - tamX/2 < objX + 5.0f) &&
+           (translateY + tamY/2 > objY - 5.0f && translateY - tamY/2 < objY + 5.0f) &&
+           (translateZ + tamZ/2 > objZ - 5.0f && translateZ - tamZ/2 < objZ + 5.0f);
+}
+
+
+void showPopup(const char* message) {
+    int result = MessageBoxA(NULL, message, "Aviso", MB_OK | MB_ICONINFORMATION);
+
+    if (result == IDOK) {
+        exit(0);
+    }
+}
+
+void detectCollision() {
+    if (isPaused) {
+        showPopup("Colisão detectada! O jogo será encerrado.");
+    }
+}
+
+
 void atualizarObjetos() {
     for (auto it = objetos.begin(); it != objetos.end(); ) {
         it->y -= it->velocidade;
+
+        if (verificarColisao(it->x, it->y, it->z, tamX, tamY, tamZ)) {
+            isPaused = true;
+            detectCollision();
+        }
+
         if (it->y <= -10.0f) {
             it = objetos.erase(it);
         } else {
@@ -96,7 +126,6 @@ void atualizarObjetos() {
         }
     }
 }
-
 
 // Fun??o para desenhar os objetos na tela
 void desenharObjetos() {
