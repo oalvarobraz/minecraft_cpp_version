@@ -18,12 +18,15 @@ public:
     GLubyte floor[512][512][3];
     GLubyte steve[64][64][3];
     GLubyte sky[2000][2000][3];
+    GLubyte skybox[1024][1024][3];
     GLubyte bloco[256][256][3];
+
 
     GLuint textura_id;
     GLuint textura_id_steve;
     GLuint textura_id_skybox[6];
     GLuint textura_id_blocos;
+    GLuint textura_id_sky[6];
 
 #ifndef GL_CLAMP_TO_EDGE
 #define GL_CLAMP_TO_EDGE 0x812F
@@ -504,13 +507,11 @@ void CarregarTexturaSkybox() {
         textura_id_skybox[1] = CarregarTexturaTGA("left.tga");
         textura_id_skybox[2] = CarregarTexturaTGA("back.tga");
         textura_id_skybox[3] = CarregarTexturaTGA("front.tga");
+        textura_id_skybox[4] = CarregarTexturaTGA("top.tga");
+        textura_id_skybox[5] = CarregarTexturaTGA("bottom.tga");
 
-
-    textura_id_skybox[4] = CarregarTexturaTGA("top.tga");
-    textura_id_skybox[5] = CarregarTexturaTGA("bottom.tga");
-
-    texturaCarregada = true;
-}
+        texturaCarregada = true;
+    }
 
     void CarregarTexturaBlocos() {
         static bool texturaCarregada = false;
@@ -520,7 +521,7 @@ void CarregarTexturaSkybox() {
         }
 
         try {
-            ifstream arq("meteoro.bmp", ios::binary); // Substitua "block_texture.bmp" pelo nome da textura do bloco.
+            ifstream arq("meteoro.bmp", ios::binary);
             char c;
             if (!arq) cout << "Erro ao abrir arquivo";
 
@@ -548,5 +549,58 @@ void CarregarTexturaSkybox() {
         }
     }
 
+    GLuint CarregarTexturaSky(const char* arquivo) {
+        ifstream arq(arquivo, ios::binary);
+        if (!arq) {
+            cout << "Erro ao abrir arquivo: " << arquivo << endl;
+            return 0;
+        }
 
+        // Ignorar cabeçalho BMP (54 bytes)
+        char header[54];
+        arq.read(header, 54);
+
+        // Obtenção das dimensões da imagem a partir do cabeçalho BMP
+        int largura = *(int*)&header[18];
+        int altura = *(int*)&header[22];
+        int tamanhoImagem = 3 * largura * altura; // 3 bytes por pixel (RGB)
+
+        // Leitura dos dados da imagem
+        GLubyte* dados = new GLubyte[tamanhoImagem];
+        arq.read(reinterpret_cast<char*>(dados), tamanhoImagem);
+        arq.close();
+
+        // Gerar a textura no OpenGL
+        GLuint idTextura;
+        glGenTextures(1, &idTextura);
+        glBindTexture(GL_TEXTURE_2D, idTextura);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, largura, altura, 0, GL_RGB, GL_UNSIGNED_BYTE, dados);
+
+        // Definir parâmetros de filtro e modo de empacotamento
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        delete[] dados;
+        return idTextura;
+    }
+
+    void CarregarTexturas() {
+        static bool texturaCarregada = false;
+
+        if (texturaCarregada) {
+            return;
+        }
+
+        // Carrega as texturas da skybox, redimensionando todas para 1024x1024
+        textura_id_sky[0] = CarregarTexturaSky("right.bmp");
+        textura_id_sky[1] = CarregarTexturaSky("left.bmp");
+        textura_id_sky[2] = CarregarTexturaSky("back.bmp");
+        textura_id_sky[3] = CarregarTexturaSky("front.bmp");
+        textura_id_sky[4] = CarregarTexturaSky("top.bmp");
+        textura_id_sky[5] = CarregarTexturaSky("bottom.bmp");
+
+        texturaCarregada = true;
+    }
 };
